@@ -1,3 +1,11 @@
+//编译:
+//	for x86:
+//		gcc -g3 crc32c_sw_big.c crc32c_sw_little.c crc32c_x86.c crc32csum_test.c -o x
+//	for arm:
+//		gcc -g3 crc32c-arm64.c crc32c_sw_big.c crc32c_sw_little.c crc32csum_test.c -o x
+
+
+
 /*
  * Copyright (C) 2020 Adan Shaw <adan_shaw@qq.com>
  *

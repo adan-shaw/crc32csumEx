@@ -41,8 +41,11 @@
    1.4  31 May 2021  Correct register constraints on assembly instructions
  */
 
+#include <stdint.h>
+#include <stddef.h>
+
 // CRC-32C (iSCSI) polynomial in reversed bit order.
-#define POLY 0x82f63b78
+#define POLY (0x82f63b78)
 
 // Hardware CRC-32C for Intel and compatible processors.
 
@@ -75,12 +78,13 @@ static inline void gf2_matrix_square (uint32_t * square, uint32_t * mat)
    A version of this routine could be easily written for any len, but that is not needed for this application. */
 static void crc32c_zeros_op (uint32_t * even, size_t len)
 {
-	uint32_t odd[32];							// odd-power-of-two zeros operator
+	unsigned n;
+	uint32_t row, odd[32];				// odd-power-of-two zeros operator
 
 	// put operator for one zero bit in odd
 	odd[0] = POLY;								// CRC-32C polynomial
-	uint32_t row = 1;
-	for (unsigned n = 1; n < 32; n++)
+	row = 1;
+	for (n = 1; n < 32; n++)
 	{
 		odd[n] = row;
 		row <<= 1;
@@ -107,7 +111,7 @@ static void crc32c_zeros_op (uint32_t * even, size_t len)
 	while (len);
 
 	// answer ended up in odd -- copy to even
-	for (unsigned n = 0; n < 32; n++)
+	for (n = 0; n < 32; n++)
 		even[n] = odd[n];
 }
 
@@ -115,9 +119,10 @@ static void crc32c_zeros_op (uint32_t * even, size_t len)
 static void crc32c_zeros (uint32_t zeros[][256], size_t len)
 {
 	uint32_t op[32];
+	unsigned n;
 
 	crc32c_zeros_op (op, len);
-	for (unsigned n = 0; n < 256; n++)
+	for (n = 0; n < 256; n++)
 	{
 		zeros[0][n] = gf2_matrix_times (op, n);
 		zeros[1][n] = gf2_matrix_times (op, n << 8);
@@ -135,10 +140,10 @@ static inline uint32_t crc32c_shift (uint32_t zeros[][256], uint32_t crc)
 /* Block sizes for three-way parallel crc computation.  LONG and SHORT must both be powers of two.
    The associated string constants must be set accordingly, 
    for use in constructing the assembler instructions. */
-#define LONG 8192
+#define LONG (8192)
 #define LONGx1 "8192"
 #define LONGx2 "16384"
-#define SHORT 256
+#define SHORT (256)
 #define SHORTx1 "256"
 #define SHORTx2 "512"
 
@@ -156,12 +161,15 @@ static void __attribute__((constructor)) crc32c_init_hw (void)
 // Compute CRC-32C using the Intel hardware instruction.
 static inline uint32_t crc32c_x86 (uint32_t crc, void const *buf, size_t len)
 {
+	uint64_t crc0, crc1, crc2;
+	unsigned char const *next;
+	unsigned char const *end;
 	// pre-process the crc
 	crc = ~crc;
-	uint64_t crc0 = crc;					// 64-bits for crc32q instruction
+	crc0 = crc;					// 64-bits for crc32q instruction
 
 	// compute the crc for up to seven leading bytes to bring the data pointer to an eight-byte boundary
-	unsigned char const *next = buf;
+	next = buf;
 	while (len && ((uintptr_t) next & 7) != 0)
 	{
 		__asm__ ("crc32b\t" "(%1), %0": "+r" (crc0):"r" (next), "m" (*next));
@@ -174,9 +182,9 @@ static inline uint32_t crc32c_x86 (uint32_t crc, void const *buf, size_t len)
 	   which have a throughput of one crc per cycle, but a latency of three cycles */
 	while (len >= LONG * 3)
 	{
-		uint64_t crc1 = 0;
-		uint64_t crc2 = 0;
-		unsigned char const *const end = next + LONG;
+		crc1 = 0;
+		crc2 = 0;
+		end = next + LONG;
 		do
 		{
 			__asm__ ("crc32q\t" "(%3), %0\n\t" "crc32q\t" LONGx1 "(%3), %1\n\t" "crc32q\t" LONGx2 "(%3), %2": "+r" (crc0), "+r" (crc1), "+r" (crc2):"r" (next), "m" (*next));
@@ -192,9 +200,9 @@ static inline uint32_t crc32c_x86 (uint32_t crc, void const *buf, size_t len)
 	// do the same thing, but now on SHORT*3 blocks for the remaining data less than a LONG*3 block
 	while (len >= SHORT * 3)
 	{
-		uint64_t crc1 = 0;
-		uint64_t crc2 = 0;
-		unsigned char const *const end = next + SHORT;
+		crc1 = 0;
+		crc2 = 0;
+		end = next + SHORT;
 		do
 		{
 			__asm__ ("crc32q\t" "(%3), %0\n\t" "crc32q\t" SHORTx1 "(%3), %1\n\t" "crc32q\t" SHORTx2 "(%3), %2": "+r" (crc0), "+r" (crc1), "+r" (crc2):"r" (next), "m" (*next));
@@ -209,7 +217,7 @@ static inline uint32_t crc32c_x86 (uint32_t crc, void const *buf, size_t len)
 
 	// compute the crc on the remaining eight-byte units less than a SHORT*3 block
 	{
-		unsigned char const *const end = next + (len - (len & 7));
+		end = next + (len - (len & 7));
 		while (next < end)
 		{
 			__asm__ ("crc32q\t" "(%1), %0": "+r" (crc0):"r" (next), "m" (*next));

@@ -13,6 +13,8 @@
 	CRC32C3X8((ITR)*7+6) \
 	} while(0)
 
+#include <stdint.h>
+#include <stddef.h>
 #include <arm_acle.h>
 #include <arm_neon.h>
 
@@ -22,13 +24,13 @@
  */
 static inline uint32_t crc32c_arm64 (uint32_t crc, unsigned char const *data, unsigned long length)
 {
-	signed long len = length;
-	crc = ~crc;
-	uint32_t crc0, crc1, crc2;
-
 	// Load two consts: K1 and K2
 	const poly64_t k1 = 0xe417f38a, k2 = 0x8f158014;
 	uint64_t t0, t1;
+
+	uint32_t crc0, crc1, crc2;
+	signed long len = length;
+	crc = ~crc;
 
 	while ((len -= 1024) >= 0)
 	{

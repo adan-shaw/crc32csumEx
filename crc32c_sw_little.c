@@ -36,17 +36,22 @@
                      Add header for external use
  */
 
+#include <stdint.h>
+#include <stddef.h>
+
 // CRC-32C (iSCSI) polynomial in reversed bit order.
-#define POLY 0x82f63b78
+#define POLY (0x82f63b78)
 
 // Construct table for software CRC-32C little-endian calculation.
 static uint32_t crc32c_table_little[8][256];
-static __attribute__((constructor))
-void crc32c_init_sw_little (void)
+
+static __attribute__((constructor)) void crc32c_init_sw_little (void)
 {
-	for (unsigned n = 0; n < 256; n++)
+	unsigned n, k;
+	uint32_t crc;
+	for (n = 0; n < 256; n++)
 	{
-		uint32_t crc = n;
+		crc = n;
 		crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
 		crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
 		crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
@@ -57,10 +62,10 @@ void crc32c_init_sw_little (void)
 		crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
 		crc32c_table_little[0][n] = crc;
 	}
-	for (unsigned n = 0; n < 256; n++)
+	for (n = 0; n < 256; n++)
 	{
-		uint32_t crc = crc32c_table_little[0][n];
-		for (unsigned k = 1; k < 8; k++)
+		crc = crc32c_table_little[0][n];
+		for (k = 1; k < 8; k++)
 		{
 			crc = crc32c_table_little[0][crc & 0xff] ^ (crc >> 8);
 			crc32c_table_little[k][n] = crc;
@@ -72,6 +77,7 @@ void crc32c_init_sw_little (void)
 static inline uint32_t crc32c_sw_little (uint32_t crc, void const *buf, size_t len)
 {
 	unsigned char const *next = buf;
+	uint64_t crcw;
 
 	crc = ~crc;
 	while (len && ((uintptr_t) next & 7) != 0)
@@ -81,7 +87,7 @@ static inline uint32_t crc32c_sw_little (uint32_t crc, void const *buf, size_t l
 	}
 	if (len >= 8)
 	{
-		uint64_t crcw = crc;
+		crcw = crc;
 		do
 		{
 			crcw ^= *(uint64_t const *) next;
