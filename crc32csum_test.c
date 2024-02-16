@@ -1,6 +1,7 @@
 //编译:
 //	for x86:
 //		gcc -g3 crc32c_sw_big.c crc32c_sw_little.c crc32c_x86.c crc32csum_test.c -o x
+
 //	for arm:
 //		gcc -g3 crc32c-arm64.c crc32c_sw_big.c crc32c_sw_little.c crc32csum_test.c -o x
 
@@ -19,13 +20,16 @@
  * General Public License for more details.
  */
 
+#include <stdint.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
+
+
+//平台筛选(支持arm/x86 的32bit/64bit, 本函数是测试函数, 做要是做高速校验和计算)
 #if defined(__aarch64__)
 #include "crc32c-arm64.c"
 #define crc32c crc32c_arm64
@@ -48,8 +52,7 @@
 
 int main (int argc, char **argv)
 {
-	int ret = 0;
-	int fd;
+	int fd, ret = 0;
 	unsigned char buf[4096];
 	ssize_t len;
 	uint32_t crc;

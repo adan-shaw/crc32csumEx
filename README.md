@@ -1,3 +1,5 @@
+# 支持arm/x86 的32bit/64bit 高速校验和csum 计算(平台移植后的性能, 请自己自行测试)
+
 # crc32csum
 
 A simple utility for calculating crc32c from pipe or files using arm64 or x86 instructions.
@@ -61,3 +63,5 @@ crc32 utility was from libarchive-zip-perl.
 | sha512sum     | 8.28    |  320.40 MiB/s |
 
 ## Enjoy!
+
+# author: adan_shaw@qq.com , 2024/02/17 in shanghai
