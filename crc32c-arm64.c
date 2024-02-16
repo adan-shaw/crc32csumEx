@@ -26,19 +26,19 @@ static inline uint32_t crc32c_arm64 (uint32_t crc, unsigned char const *data, un
 	crc = ~crc;
 	uint32_t crc0, crc1, crc2;
 
-	/* Load two consts: K1 and K2 */
+	// Load two consts: K1 and K2
 	const poly64_t k1 = 0xe417f38a, k2 = 0x8f158014;
 	uint64_t t0, t1;
 
 	while ((len -= 1024) >= 0)
 	{
-		/* Do first 8 bytes here for better pipelining */
+		// Do first 8 bytes here for better pipelining
 		crc0 = __crc32cd (crc, *(const uint64_t *) data);
 		crc1 = 0;
 		crc2 = 0;
 		data += sizeof (uint64_t);
 
-		/* Process block inline, Process crc0 last to avoid dependency with above */
+		// Process block inline, Process crc0 last to avoid dependency with above
 		CRC32C7X3X8 (0);
 		CRC32C7X3X8 (1);
 		CRC32C7X3X8 (2);
@@ -72,7 +72,7 @@ static inline uint32_t crc32c_arm64 (uint32_t crc, unsigned char const *data, un
 		data += sizeof (uint64_t);
 	}
 
-	/* The following is more efficient than the straight loop */
+	// The following is more efficient than the straight loop
 	if (len & sizeof (uint32_t))
 	{
 		crc = __crc32cw (crc, *(const uint32_t *) data);

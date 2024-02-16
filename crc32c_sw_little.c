@@ -36,10 +36,10 @@
                      Add header for external use
  */
 
-/* CRC-32C (iSCSI) polynomial in reversed bit order. */
+// CRC-32C (iSCSI) polynomial in reversed bit order.
 #define POLY 0x82f63b78
 
-/* Construct table for software CRC-32C little-endian calculation. */
+// Construct table for software CRC-32C little-endian calculation.
 static uint32_t crc32c_table_little[8][256];
 static __attribute__((constructor))
 void crc32c_init_sw_little (void)
@@ -68,8 +68,7 @@ void crc32c_init_sw_little (void)
 	}
 }
 
-/* Compute a CRC-32C in software assuming a little-endian architecture,
-   constructing the required table if that hasn't already been done. */
+// Compute a CRC-32C in software assuming a little-endian architecture, constructing the required table if that hasn't already been done
 static inline uint32_t crc32c_sw_little (uint32_t crc, void const *buf, size_t len)
 {
 	unsigned char const *next = buf;

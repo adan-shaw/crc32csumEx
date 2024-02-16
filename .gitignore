@@ -1,2 +1,9 @@
-/a.out
-/crc32csum
+*.out
+*.o
+*.lib
+*.dll
+*.so
+*.a
+*.swp
+.vscode
+x

@@ -41,10 +41,10 @@
    1.4  31 May 2021  Correct register constraints on assembly instructions
  */
 
-/* CRC-32C (iSCSI) polynomial in reversed bit order. */
+// CRC-32C (iSCSI) polynomial in reversed bit order.
 #define POLY 0x82f63b78
 
-/* Hardware CRC-32C for Intel and compatible processors. */
+// Hardware CRC-32C for Intel and compatible processors.
 
 /* Multiply a matrix times a vector over the Galois field of two elements, GF(2).
    Each element is a bit in an unsigned integer.  mat must have at
@@ -62,7 +62,7 @@ static inline uint32_t gf2_matrix_times (uint32_t * mat, uint32_t vec)
 	return sum;
 }
 
-/* Multiply a matrix by itself over GF(2). Both mat and square must have 32 rows. */
+// Multiply a matrix by itself over GF(2). Both mat and square must have 32 rows.
 static inline void gf2_matrix_square (uint32_t * square, uint32_t * mat)
 {
 	for (unsigned n = 0; n < 32; n++)
@@ -75,10 +75,10 @@ static inline void gf2_matrix_square (uint32_t * square, uint32_t * mat)
    A version of this routine could be easily written for any len, but that is not needed for this application. */
 static void crc32c_zeros_op (uint32_t * even, size_t len)
 {
-	uint32_t odd[32];							/* odd-power-of-two zeros operator */
+	uint32_t odd[32];							// odd-power-of-two zeros operator
 
-	/* put operator for one zero bit in odd */
-	odd[0] = POLY;								/* CRC-32C polynomial */
+	// put operator for one zero bit in odd
+	odd[0] = POLY;								// CRC-32C polynomial
 	uint32_t row = 1;
 	for (unsigned n = 1; n < 32; n++)
 	{
@@ -86,15 +86,15 @@ static void crc32c_zeros_op (uint32_t * even, size_t len)
 		row <<= 1;
 	}
 
-	/* put operator for two zero bits in even */
+	// put operator for two zero bits in even
 	gf2_matrix_square (even, odd);
 
-	/* put operator for four zero bits in odd */
+	// put operator for four zero bits in odd
 	gf2_matrix_square (odd, even);
 
 	/* first square will put the operator for one zero byte (eight zero bits),
-	   in even -- next square puts operator for two zero bytes in odd, and so
-	   on, until len has been rotated down to zero */
+	   in even -- next square puts operator for two zero bytes in odd, 
+	   and so on, until len has been rotated down to zero */
 	do
 	{
 		gf2_matrix_square (even, odd);
@@ -106,13 +106,12 @@ static void crc32c_zeros_op (uint32_t * even, size_t len)
 	}
 	while (len);
 
-	/* answer ended up in odd -- copy to even */
+	// answer ended up in odd -- copy to even
 	for (unsigned n = 0; n < 32; n++)
 		even[n] = odd[n];
 }
 
-/* Take a length and build four lookup tables for applying the zeros operator
-   for that length, byte-by-byte on the operand. */
+// Take a length and build four lookup tables for applying the zeros operator for that length, byte-by-byte on the operand.
 static void crc32c_zeros (uint32_t zeros[][256], size_t len)
 {
 	uint32_t op[32];
@@ -127,15 +126,15 @@ static void crc32c_zeros (uint32_t zeros[][256], size_t len)
 	}
 }
 
-/* Apply the zeros operator table to crc. */
+// Apply the zeros operator table to crc.
 static inline uint32_t crc32c_shift (uint32_t zeros[][256], uint32_t crc)
 {
 	return zeros[0][crc & 0xff] ^ zeros[1][(crc >> 8) & 0xff] ^ zeros[2][(crc >> 16) & 0xff] ^ zeros[3][crc >> 24];
 }
 
-/* Block sizes for three-way parallel crc computation.  LONG and SHORT must
-   both be powers of two.  The associated string constants must be set
-   accordingly, for use in constructing the assembler instructions. */
+/* Block sizes for three-way parallel crc computation.  LONG and SHORT must both be powers of two.
+   The associated string constants must be set accordingly, 
+   for use in constructing the assembler instructions. */
 #define LONG 8192
 #define LONGx1 "8192"
 #define LONGx2 "16384"
@@ -143,25 +142,25 @@ static inline uint32_t crc32c_shift (uint32_t zeros[][256], uint32_t crc)
 #define SHORTx1 "256"
 #define SHORTx2 "512"
 
-/* Tables for hardware crc that shift a crc by LONG and SHORT zeros. */
+// Tables for hardware crc that shift a crc by LONG and SHORT zeros.
 static uint32_t crc32c_long[4][256];
 static uint32_t crc32c_short[4][256];
 
-/* Initialize tables for shifting crcs. */
+// Initialize tables for shifting crcs.
 static void __attribute__((constructor)) crc32c_init_hw (void)
 {
 	crc32c_zeros (crc32c_long, LONG);
 	crc32c_zeros (crc32c_short, SHORT);
 }
 
-/* Compute CRC-32C using the Intel hardware instruction. */
+// Compute CRC-32C using the Intel hardware instruction.
 static inline uint32_t crc32c_x86 (uint32_t crc, void const *buf, size_t len)
 {
-	/* pre-process the crc */
+	// pre-process the crc
 	crc = ~crc;
-	uint64_t crc0 = crc;					/* 64-bits for crc32q instruction */
+	uint64_t crc0 = crc;					// 64-bits for crc32q instruction
 
-	/* compute the crc for up to seven leading bytes to bring the data pointer to an eight-byte boundary */
+	// compute the crc for up to seven leading bytes to bring the data pointer to an eight-byte boundary
 	unsigned char const *next = buf;
 	while (len && ((uintptr_t) next & 7) != 0)
 	{
@@ -170,10 +169,9 @@ static inline uint32_t crc32c_x86 (uint32_t crc, void const *buf, size_t len)
 		len--;
 	}
 
-	/* compute the crc on sets of LONG*3 bytes, executing three independent crc
-	   instructions, each on LONG bytes -- this is optimized for the Nehalem,
-	   Westmere, Sandy Bridge, and Ivy Bridge architectures, which have a
-	   throughput of one crc per cycle, but a latency of three cycles */
+	/* compute the crc on sets of LONG*3 bytes, executing three independent crc instructions, 
+	   each on LONG bytes -- this is optimized for the Nehalem, Westmere, Sandy Bridge, and Ivy Bridge architectures, 
+	   which have a throughput of one crc per cycle, but a latency of three cycles */
 	while (len >= LONG * 3)
 	{
 		uint64_t crc1 = 0;
@@ -191,7 +189,7 @@ static inline uint32_t crc32c_x86 (uint32_t crc, void const *buf, size_t len)
 		len -= LONG * 3;
 	}
 
-	/* do the same thing, but now on SHORT*3 blocks for the remaining data less than a LONG*3 block */
+	// do the same thing, but now on SHORT*3 blocks for the remaining data less than a LONG*3 block
 	while (len >= SHORT * 3)
 	{
 		uint64_t crc1 = 0;
@@ -209,7 +207,7 @@ static inline uint32_t crc32c_x86 (uint32_t crc, void const *buf, size_t len)
 		len -= SHORT * 3;
 	}
 
-	/* compute the crc on the remaining eight-byte units less than a SHORT*3 block */
+	// compute the crc on the remaining eight-byte units less than a SHORT*3 block
 	{
 		unsigned char const *const end = next + (len - (len & 7));
 		while (next < end)
@@ -220,7 +218,7 @@ static inline uint32_t crc32c_x86 (uint32_t crc, void const *buf, size_t len)
 		len &= 7;
 	}
 
-	/* compute the crc for up to seven trailing bytes */
+	// compute the crc for up to seven trailing bytes
 	while (len)
 	{
 		__asm__ ("crc32b\t" "(%1), %0": "+r" (crc0):"r" (next), "m" (*next));
@@ -228,6 +226,6 @@ static inline uint32_t crc32c_x86 (uint32_t crc, void const *buf, size_t len)
 		len--;
 	}
 
-	/* return a post-processed crc */
+	// return a post-processed crc
 	return ~crc0;
 }

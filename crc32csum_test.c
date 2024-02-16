@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2020 Park Ju Hyung <qkrwngud825@gmail.com>
+ * Copyright (C) 2020 Adan Shaw <adan_shaw@qq.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, version 2 of the
- * License.
+ * published by the Free Software Foundation, version 2 of the License.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -36,6 +35,8 @@
 #define crc32c crc32c_sw_little
 #warning "Using software little endian implementation of crc32c (slow)"
 #endif
+
+
 
 int main (int argc, char **argv)
 {

@@ -36,10 +36,10 @@
                      Add header for external use
  */
 
-/* CRC-32C (iSCSI) polynomial in reversed bit order. */
+// CRC-32C (iSCSI) polynomial in reversed bit order.
 #define POLY 0x82f63b78
 
-/* Swap the bytes in a uint64_t.  (Only for big-endian.) */
+// Swap the bytes in a uint64_t.  (Only for big-endian.)
 #if defined(__has_builtin) || (defined(__GNUC__) && \
     (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)))
 #define swap __builtin_bswap64
@@ -52,7 +52,7 @@ static inline uint64_t swap (uint64_t x)
 }
 #endif
 
-/* Construct tables for software CRC-32C big-endian calculation. */
+// Construct tables for software CRC-32C big-endian calculation.
 static uint32_t crc32c_table_big_byte[256];
 static uint64_t crc32c_table_big[8][256];
 static __attribute__((constructor))
@@ -83,8 +83,7 @@ void crc32c_init_sw_big (void)
 	}
 }
 
-/* Compute a CRC-32C in software assuming a big-endian architecture,
-   constructing the required tables if that hasn't already been done. */
+// Compute a CRC-32C in software assuming a big-endian architecture, constructing the required tables if that hasn't already been done
 static inline uint32_t crc32c_sw_big (uint32_t crc, void const *buf, size_t len)
 {
 	unsigned char const *next = buf;
