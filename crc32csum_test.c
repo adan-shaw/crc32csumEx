@@ -29,7 +29,7 @@
 
 
 
-//平台筛选(支持arm/x86 的32bit/64bit, 本函数是测试函数, 做要是做高速校验和计算)
+//平台筛选( 支持arm/x86 的32bit/64bit, 这里是自适配平台, 最终将平台差异, 统一扭转为统一API: crc32c() )
 #if defined(__aarch64__)
 #include "crc32c-arm64.c"
 #define crc32c crc32c_arm64
@@ -50,6 +50,7 @@
 
 
 
+//本函数是测试函数, 做要是做高速校验和计算
 int main (int argc, char **argv)
 {
 	int fd, ret = 0;
